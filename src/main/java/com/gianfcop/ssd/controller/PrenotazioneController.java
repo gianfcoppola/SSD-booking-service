@@ -2,10 +2,16 @@ package com.gianfcop.ssd.controller;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,17 +48,31 @@ public class PrenotazioneController {
         return "index";
     } 
 
+    //@RolesAllowed("admin_role")
     @GetMapping("/prenotazioni/new")
-    public String returnCreaPrenotazione(Model model, @RequestHeader Map<String, String> headers){
-        
+    public String returnCreaPrenotazione(Model model, @AuthenticationPrincipal Jwt jwt){
+
+        //String authorizationHeader = headers.get(HttpHeaders.AUTHORIZATION.toLowerCase());
+        //String accessToken = authorizationHeader.replace("Bearer ", "");
+      //
+        String idUtente = jwt.getClaims().get("sub").toString();
+        String nomeUtente = jwt.getClaimAsString("name");
+        String roles = jwt.getClaimAsMap("realm_access").get("roles").toString();
+        List<String> roleList = Arrays.stream(roles.replace("[","").replace("]", "").replace("\"", "").split(",")).toList();
+        if(!roleList.contains("user")){
+            log.error("ACCESS FORBIDDEN 403");
+            return "forbidden_page";
+        }
+
         //log.info("USERNAME PASSED FROM API GATEWAY: ", request.getHeader("username_header"));
-        String idUtente = headers.get("username_header");
+         /*
+         String idUtente = headers.get("username_header");
         String nomeUtente = headers.get("name_header");
         headers.forEach((key, value) -> {
             log.info(String.format("Header '%s' = %s", key, value));
         });
         log.info("USERNAME OF THE USER LOGGED: {}", headers.get("username_header"));
-
+*/
         // create prenotazione object to hold prenotazione form data
 		PrenotazioneDTOIn prenotazioneDTOIn = new PrenotazioneDTOIn();
 
@@ -68,11 +88,11 @@ public class PrenotazioneController {
     }
 
     @PostMapping("/prenotazioni/new")
-	public String savePrenotazione(@ModelAttribute("prenotazioneDTOIn") PrenotazioneDTOIn prenotazioneDTOIn, Model model, @RequestHeader Map<String, String> headers) {
-		String idUtente = headers.get("username_header");
+	public String savePrenotazione(@ModelAttribute("prenotazioneDTOIn") PrenotazioneDTOIn prenotazioneDTOIn, Model model, @AuthenticationPrincipal Jwt jwt) {
+        String idUtente = jwt.getClaims().get("sub").toString();
+        String nomeUtente = jwt.getClaimAsString("name");
         model.addAttribute("idUtente", idUtente);
         prenotazioneDTOIn.setIdUtente(idUtente);
-        String nomeUtente = headers.get("name_header");
         model.addAttribute("nomeUtente", nomeUtente);
         if(prenotazioniService.insertPrenotazione(prenotazioneDTOIn)){
             log.info("prenotazione inserita");
@@ -102,10 +122,10 @@ public class PrenotazioneController {
 	}
 
     @GetMapping("/prenotazioni/{idUtente}")
-    public String listaMiePrenotazioni(Model model, @PathVariable("idUtente") String IDUtente, @RequestHeader Map<String, String> headers){
-        String nomeUtente = headers.get("name_header");
+    public String listaMiePrenotazioni(Model model, @PathVariable("idUtente") String IDUtente, @AuthenticationPrincipal Jwt jwt){
+        String idUtente = jwt.getClaims().get("sub").toString();
+        String nomeUtente = jwt.getClaimAsString("name");
         model.addAttribute("nomeUtente", nomeUtente);
-        String idUtente = headers.get("username_header");
         model.addAttribute("idUtente", idUtente);
         model.addAttribute("prenotazioni", prenotazioniService.getPrenotazioneByIdUtente(IDUtente));
         return "prenotazioni-utente";
@@ -113,11 +133,11 @@ public class PrenotazioneController {
   
 
     @GetMapping("/prenotazioni/disponibili/{idStruttura}/{data}")
-    public String listaPrenotazioniDisponibili(Model model, @PathVariable("idStruttura") int idStruttura, @PathVariable("data") String data, @RequestHeader Map<String, String> headers){
-        
-        String nomeUtente = headers.get("name_header");
+    public String listaPrenotazioniDisponibili(Model model, @PathVariable("idStruttura") int idStruttura, @PathVariable("data") String data, @AuthenticationPrincipal Jwt jwt){
+
+        String idUtente = jwt.getClaims().get("sub").toString();
+        String nomeUtente = jwt.getClaimAsString("name");
         model.addAttribute("nomeUtente", nomeUtente);
-        String idUtente = headers.get("username_header");
         model.addAttribute("idUtente", idUtente);
 
         model.addAttribute("nomeStruttura", struttureService.getNomeStruttura(idStruttura));
@@ -127,11 +147,11 @@ public class PrenotazioneController {
     }
 
     @GetMapping("/prenotazioni/disponibili/cerca") 
-    public String cercaPrenotazioniDisponibili(Model model, @RequestHeader Map<String, String> headers){
+    public String cercaPrenotazioniDisponibili(Model model, @AuthenticationPrincipal Jwt jwt){
 
-        String nomeUtente = headers.get("name_header");
+        String idUtente = jwt.getClaims().get("sub").toString();
+        String nomeUtente = jwt.getClaimAsString("name");
         model.addAttribute("nomeUtente", nomeUtente);
-        String idUtente = headers.get("username_header");
         model.addAttribute("idUtente", idUtente);
         model.addAttribute("oggi", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 
@@ -142,7 +162,7 @@ public class PrenotazioneController {
     }
 
     @PostMapping("/prenotazioni/disponibili/cerca")
-	public String cercaPrenotazione(@ModelAttribute("prenotazioneCercaDTOIn") PrenotazioneCercaDTOIn prenotazioneCercaDTOIn, Model model, @RequestHeader Map<String, String> headers) {
+	public String cercaPrenotazione(@ModelAttribute("prenotazioneCercaDTOIn") PrenotazioneCercaDTOIn prenotazioneCercaDTOIn, Model model, @AuthenticationPrincipal Jwt jwt) {
         String data = prenotazioneCercaDTOIn.getData();
         int giorno, mese, anno;
         giorno = Integer.valueOf(data.substring(8));
@@ -152,9 +172,9 @@ public class PrenotazioneController {
         //String url = "/prenotazioni/disponibili/" + String.valueOf(prenotazioneCercaDTOIn.getIdStruttura()) + "/" + data;
         //return new RedirectView(url);
         //return "redirect:/prenotazioni/disponibili/" + String.valueOf(prenotazioneCercaDTOIn.getIdStruttura()) + "/" + data;
-        String idUtente = headers.get("username_header");
-        model.addAttribute("idUtente", idUtente);       
-        String nomeUtente = headers.get("name_header");
+        String idUtente = jwt.getClaims().get("sub").toString();
+        String nomeUtente = jwt.getClaimAsString("name");
+        model.addAttribute("idUtente", idUtente);
 		model.addAttribute("nomeUtente", nomeUtente);
         model.addAttribute("nomeStruttura", struttureService.getNomeStruttura(prenotazioneCercaDTOIn.getIdStruttura()));
         model.addAttribute("dataPrenotazioneRichiesta", data);
@@ -163,12 +183,12 @@ public class PrenotazioneController {
 	}
     
     @GetMapping("/prenotazioni/cancella/{id}")
-    public String cancellaPrenotazione(@PathVariable("id") int idPrenotazione, Model model, @RequestHeader Map<String, String> headers){
-        String nomeUtente = headers.get("name_header");
+    public String cancellaPrenotazione(@PathVariable("id") int idPrenotazione, Model model, @AuthenticationPrincipal Jwt jwt){
+        String idUtente = jwt.getClaims().get("sub").toString();
+        String nomeUtente = jwt.getClaimAsString("name");
 		model.addAttribute("nomeUtente", nomeUtente);
 
         prenotazioniService.deletePrenotazione(idPrenotazione);
-        String idUtente = headers.get("username_header");
         model.addAttribute("idUtente", idUtente);
         model.addAttribute("prenotazioni", prenotazioniService.getPrenotazioneByIdUtente(idUtente));
 

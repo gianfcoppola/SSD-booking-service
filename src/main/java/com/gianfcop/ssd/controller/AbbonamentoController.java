@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,13 +32,13 @@ public class AbbonamentoController {
     }
 
     @GetMapping("/info")
-    public String returnInfoAbbonamenti(Model model, @RequestHeader Map<String, String> headers){
+    public String returnInfoAbbonamenti(Model model, @AuthenticationPrincipal Jwt jwt){
         
 
         model.addAttribute("infoAbbonamenti", abbonamentiService.getInfoAbbonamenti());
-        String idUtente = headers.get("username_header");
+        String idUtente = jwt.getClaims().get("sub").toString();
+        String nomeUtente = jwt.getClaimAsString("name");
         model.addAttribute("idUtente", idUtente);
-	    String nomeUtente = headers.get("name_header");
         model.addAttribute("nomeUtente", nomeUtente);
         
 
@@ -46,11 +48,11 @@ public class AbbonamentoController {
 
     
     @GetMapping("/new")
-    public String returnCreaAbbonamento(Model model, @RequestHeader Map<String, String> headers){
+    public String returnCreaAbbonamento(Model model, @AuthenticationPrincipal Jwt jwt){
 
-        String idUtente = headers.get("username_header");
+        String idUtente = jwt.getClaims().get("sub").toString();
+        String nomeUtente = jwt.getClaimAsString("name");
         model.addAttribute("idUtente", idUtente);
-	    String nomeUtente = headers.get("name_header");
         model.addAttribute("nomeUtente", nomeUtente);
         
         // create Abbonamento object to hold prenotazione form data
@@ -67,10 +69,10 @@ public class AbbonamentoController {
 
     
     @PostMapping("/new")
-	public String insertAbbonamento(@ModelAttribute("abbonamentoDTOIn") AbbonamentoDTOIn abbonamentoDTOIn, Model model, @RequestHeader Map<String, String> headers) {
-        String idUtente = headers.get("username_header");
+	public String insertAbbonamento(@ModelAttribute("abbonamentoDTOIn") AbbonamentoDTOIn abbonamentoDTOIn, Model model, @AuthenticationPrincipal Jwt jwt) {
+        String idUtente = jwt.getClaims().get("sub").toString();
+        String nomeUtente = jwt.getClaimAsString("name");
         model.addAttribute("idUtente", idUtente);
-	    String nomeUtente = headers.get("name_header");
         model.addAttribute("nomeUtente", nomeUtente);
         
         abbonamentoDTOIn.setDataInizioAbbonamento(LocalDate.now().toString());
@@ -89,10 +91,10 @@ public class AbbonamentoController {
 
     
     @GetMapping("/{idUtente}")
-    public String listaMieiAbbonamenti(Model model, @PathVariable("idUtente") String idUser, @RequestHeader Map<String, String> headers){
-        String idUtente = headers.get("username_header");
+    public String listaMieiAbbonamenti(Model model, @PathVariable("idUtente") String idUser, @AuthenticationPrincipal Jwt jwt){
+        String idUtente = jwt.getClaims().get("sub").toString();
+        String nomeUtente = jwt.getClaimAsString("name");
         model.addAttribute("idUtente", idUtente);
-	    String nomeUtente = headers.get("name_header");
         model.addAttribute("nomeUtente", nomeUtente);
         model.addAttribute("abbonamentiUtente", abbonamentiService.getAbbonamentiByIdUtente(idUser));
         return "abbonamenti_utente";
