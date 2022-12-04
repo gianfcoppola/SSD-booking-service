@@ -2,7 +2,6 @@ package com.gianfcop.ssd.controller;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.gianfcop.ssd.dto.AbbonamentoDTOIn;
@@ -77,7 +75,7 @@ public class AbbonamentoController {
         
         abbonamentoDTOIn.setDataInizioAbbonamento(LocalDate.now().toString());
         abbonamentoDTOIn.setIdUtente(idUtente);
-		abbonamentiService.insertAbbonamento(abbonamentoDTOIn);
+		abbonamentiService.insertAbbonamento(abbonamentoDTOIn, jwt.getTokenValue());
         log.info("abbonamento inserito");
 
         

@@ -14,14 +14,17 @@
 	<nav class="navbar navbar-expand-md navbar-dark bg-dark">
 		<div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
 			<ul class="navbar-nav mr-auto">
-				<li class="nav-item active">
-					<a class="navbar-brand" href="#">Centro sportivo - Prenotazioni</a>
+				<li class="nav-item dropdown">
+					<a class="nav-link " th:href="@{/logout}" id="navbarDropdown" role="button" >
+					  Logout
+					</a>
 				</li>
+			</ul>
 				
 			</ul>
 		</div>
 		<div class="mx-auto order-0">
-			<a class="navbar-brand mx-auto" href="#" th:text="${nomeUtente}"></a>
+			<a class="navbar-brand" href="#">Centro sportivo - Prenotazioni</a>
 			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".dual-collapse2">
 				<span class="navbar-toggler-icon"></span>
 			</button>

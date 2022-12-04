@@ -44,7 +44,7 @@ public class AbbonamentiService {
     }
 
 
-    public Abbonamento insertAbbonamento(AbbonamentoDTOIn abbonamentoDTOIn){
+    public Abbonamento insertAbbonamento(AbbonamentoDTOIn abbonamentoDTOIn, String accessToken){
 
         
         int idAbbonamento = (int)sequenceGeneratorService.generateSequence(Abbonamento.SEQUENCE_NAME);
@@ -60,6 +60,7 @@ public class AbbonamentiService {
         //aggiorno dati centro sportivo
         String uri = "http://structures-service/centro-sportivo/nuovo-abbonamento";
         HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
         ObjectMapper mapper = new ObjectMapper();
         DatiAbbonamentoDTO datiAbbonamentoDTO = new DatiAbbonamentoDTO();

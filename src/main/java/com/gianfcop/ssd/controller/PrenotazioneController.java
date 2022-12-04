@@ -4,21 +4,17 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.gianfcop.ssd.dto.PrenotazioneCercaDTOIn;
 import com.gianfcop.ssd.dto.PrenotazioneDTOIn;
@@ -43,7 +39,7 @@ public class PrenotazioneController {
 
     // ################         SPRING MVC             #######################
 
-    @GetMapping("/index")
+    @GetMapping("/prenotazioni/index")
     public String home(){
         return "index";
     } 
@@ -94,7 +90,7 @@ public class PrenotazioneController {
         model.addAttribute("idUtente", idUtente);
         prenotazioneDTOIn.setIdUtente(idUtente);
         model.addAttribute("nomeUtente", nomeUtente);
-        if(prenotazioniService.insertPrenotazione(prenotazioneDTOIn)){
+        if(prenotazioniService.insertPrenotazione(prenotazioneDTOIn, jwt.getTokenValue())){
             log.info("prenotazione inserita");
             //redirectAttributes.addAttribute("utente", prenotazioneDTOIn.getIdUtente()).addFlashAttribute("prenotazioneInserita", "1");
             model.addAttribute("prenotazioneInserita", "1");

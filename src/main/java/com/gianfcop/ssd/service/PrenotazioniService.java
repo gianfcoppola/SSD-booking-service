@@ -41,7 +41,7 @@ public class PrenotazioniService {
         this.prenotazioniRepository = prenotazioniRepository;
     }
 
-    public boolean insertPrenotazione(PrenotazioneDTOIn prenotazioneDTOIn){
+    public boolean insertPrenotazione(PrenotazioneDTOIn prenotazioneDTOIn, String accessToken){
 
         int idPrenotazione = (int)sequenceGeneratorService.generateSequence(Prenotazione.SEQUENCE_NAME);
 
@@ -50,8 +50,10 @@ public class PrenotazioniService {
 
         if(salvaPrenotazione == true){
             prenotazioniRepository.save(nuovaPrenotazione);
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.setBearerAuth(accessToken);
             String uri = "http://structures-service/centro-sportivo/nuova-prenotazione/" + String.valueOf(prenotazioneDTOIn.getIdStruttura());
-            restTemplate.exchange(uri, HttpMethod.PUT, new HttpEntity<>(new HttpHeaders()), Void.class);
+            restTemplate.exchange(uri, HttpMethod.PUT, new HttpEntity<>(httpHeaders), Void.class);
             log.info("Prenotazione inserita");
         }
             
